@@ -1,0 +1,89 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+
+/**
+ * Auto-generated code below aims at helping you parse
+ * the standard input according to the problem statement.
+ **/
+class Player
+{
+    static void Main(string[] args)
+    {
+        string[] inputs;
+        inputs = Console.ReadLine().Split(' ');
+        int nbFloors = int.Parse(inputs[0]); // number of floors
+        int width = int.Parse(inputs[1]); // width of the area
+        int nbRounds = int.Parse(inputs[2]); // maximum number of rounds
+        int exitFloor = int.Parse(inputs[3]); // floor on which the exit is found
+        int exitPos = int.Parse(inputs[4]); // position of the exit on its floor
+        int nbTotalClones = int.Parse(inputs[5]); // number of generated clones
+        int nbAdditionalElevators = int.Parse(inputs[6]); // ignore (always zero)
+        int nbElevators = int.Parse(inputs[7]); // number of elevators
+        Dictionary<int, int> elevatorDictionary = new Dictionary<int, int>();
+        
+        for (int i = 0; i < nbElevators; i++)
+        {
+            inputs = Console.ReadLine().Split(' ');
+            int elevatorFloor = int.Parse(inputs[0]); // floor on which this elevator is found
+            int elevatorPos = int.Parse(inputs[1]); // position of the elevator on its floor
+            elevatorDictionary.Add(elevatorFloor, elevatorPos);
+        }
+
+        // game loop
+        while (true)
+        {
+            inputs = Console.ReadLine().Split(' ');
+            int cloneFloor = int.Parse(inputs[0]); // floor of the leading clone
+            int clonePos = int.Parse(inputs[1]); // position of the leading clone on its floor
+            string direction = inputs[2]; // direction of the leading clone: LEFT or RIGHT
+                
+                //is er geen leading clone?
+                if(direction == "NONE")
+                {
+                    Console.WriteLine("WAIT");
+                }else
+                {
+                    //is de clone niet aan de rand?
+        	        if(clonePos == width-1 || clonePos == 0)
+                    {
+                        Console.WriteLine("BLOCK");
+                    }
+                    else
+                    {
+                        //is de exit op deze floor
+                        if(exitFloor == cloneFloor)
+                        {
+                             //gaat de clone de goede kant op?
+                            if(exitPos > clonePos && direction == "LEFT" || exitPos < clonePos && direction == "RIGHT")
+                            {
+                                Console.WriteLine("BLOCK");
+                            }else
+                            {
+                                Console.WriteLine("WAIT");
+                            }
+                        }
+                        //is er een elevator op deze verdieping?
+                        else if (elevatorDictionary.ContainsKey(cloneFloor))
+                    	{
+                    	    //Is de elevator de andere kant op?
+                    	    if(elevatorDictionary[cloneFloor] > clonePos && direction == "LEFT" || elevatorDictionary[cloneFloor] < clonePos && direction == "RIGHT")
+                    	    {
+                    	        Console.WriteLine("BLOCK");
+                    	    }
+                    	    else
+                    	    {
+                    	        Console.WriteLine("WAIT");
+                    	    }
+                    	}else // geen lift op deze floor
+                    	{
+                            Console.WriteLine("WAIT");
+                    	}
+                    }
+                }
+        }
+    }
+}
