@@ -1,0 +1,79 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+
+/**
+ * Auto-generated code below aims at helping you parse
+ * the standard input according to the problem statement.
+ **/
+class Solution
+{
+    static void Main(string[] args)
+    {
+        int n = int.Parse(Console.ReadLine()); // the number of relationships of influence
+        var d = new Dictionary<int, Node>();
+        for (int i = 0; i < n; i++)
+        {
+            string[] inputs = Console.ReadLine().Split(' ');
+            int x = int.Parse(inputs[0]); // a relationship of influence between two people (x influences y)
+            int y = int.Parse(inputs[1]);
+            if (!d.ContainsKey(x))
+            {
+                d[x] = new Node(x);
+            }
+            if (!d.ContainsKey(y))
+            {
+                d[y] = new Node(y);
+            }
+            d[x].Children.Add(d[y]);
+            d[y].Parents.Add(d[x]);
+        }
+        var maxChildren = 0;
+        foreach (var node in d.Values)//.Where(x => x.Parents.Count() == 0))
+        {//All the nodes with no parents
+            
+            var lp = node.LongestPath();
+            if (lp > maxChildren)
+            {
+                maxChildren = lp;
+            }
+        }
+
+        // Write an action using Console.WriteLine()
+        // To debug: Console.Error.WriteLine("Debug messages...");
+
+        Console.WriteLine(maxChildren); // The number of people involved in the longest succession of influences
+    }
+    public class Node
+    {
+        public List<Node> Children;
+        public List<Node> Parents;
+        public int NodeId;
+        public int LP;
+       
+        public int LongestPath()
+        {
+            if (LP != -1)
+            {
+                return LP;
+            }
+            if (Children.Count() == 0)
+            {
+                LP = 1;//alleen parent node
+                return 1;
+            }
+            LP = Children.Max(x => x.LongestPath())+1;//alle kinderen + de parent node
+            return LP;
+        }
+        public Node(int nodeId)
+        {
+            NodeId = nodeId;
+            LP = -1;
+            Children = new List<Node>();
+            Parents = new List<Node>();
+        }
+    }
+}
