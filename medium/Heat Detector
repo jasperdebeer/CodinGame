@@ -1,0 +1,115 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+
+/**
+ * Auto-generated code below aims at helping you parse
+ * the standard input according to the problem statement.
+ **/
+class Player
+{
+    static void Main(string[] args)
+    {
+        string[] inputs;
+        inputs = Console.ReadLine().Split(' ');
+        int W = int.Parse(inputs[0]); // width of the building.
+        int H = int.Parse(inputs[1]); // height of the building.
+        int N = int.Parse(Console.ReadLine()); // maximum number of turns before game over.
+        inputs = Console.ReadLine().Split(' ');
+        int X0 = int.Parse(inputs[0]);
+        int Y0 = int.Parse(inputs[1]);
+        int x = X0;
+        int y = Y0;
+        string newX = "";
+        string newY = "";
+        int maxX = W-1;
+        int minX = -1;
+        int maxY = 0;
+        int minY = H-1;
+
+        // game loop
+        while (true)
+        {
+            string bombDir = Console.ReadLine(); // the direction of the bombs from batman's current location (U, UR, R, DR, D, DL, L or UL)
+            switch (bombDir)// op basis van binary search
+            {
+                case "U":
+                    minY = y;
+                    y = targetY(minY, maxY, y, "U");
+                    break;
+                case "UR":
+                    minX = x;
+                    minY = y;
+                    y = targetY(minY, maxY, y, "U");
+                    x = targetX(minX, maxX, x, "R");                    
+                    break;
+                case "R":
+                    minX = x;
+                    x = targetX(minX, maxX, x, "R");
+                    break;
+                case "DR":
+                    minX = x;
+                    maxY = y;
+                    y = targetY(minY, maxY, y, "D");
+                    x = targetX(minX, maxX, x, "R");                    
+                    break;
+                case "D":
+                    maxY = y;
+                    y = targetY(minY, maxY, y, "D");
+                    break;
+                case "DL":
+                    maxX = x;
+                    maxY = y;
+                    y = targetY(minY, maxY, y, "D");
+                    x = targetX(minX, maxX, x, "L");                    
+                    break;
+                case "L":
+                    maxX = x;
+                    x = targetY(minX, maxX, x, "L");
+                    break;
+                case "UL":
+                    minY = y;
+                    maxX = x;
+                    y = targetY(minY, maxY, y, "U");
+                    x = targetX(minX, maxX, x, "L");
+                    break;
+                default:
+                    return;
+            }
+            
+            newX = x.ToString();
+            newY = y.ToString();
+            
+            Console.WriteLine(newX + " " + newY); // the location of the next window Batman should jump to.
+        }
+    }
+    
+    public static int targetX(int minX, int maxX, int x, string direction)
+    {
+        if(direction == "L")
+        {
+            x = (int)Math.Floor((minX+maxX) / 2.0);
+        }
+        else
+        {
+            x = (int)Math.Ceiling((minX+maxX) / 2.0);
+        }
+        return x;
+    }
+    public static int targetY(int minY, int maxY, int y, string direction)
+    {
+        if(direction == "U")
+        {
+            y = (int)Math.Floor((minY + maxY) / 2.0);
+        }
+        else
+        {
+            y = (int)Math.Ceiling((minY + maxY) / 2.0);
+        }
+        return y;
+    }
+}
