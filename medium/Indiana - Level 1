@@ -1,0 +1,81 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+
+/**
+ * Auto-generated code below aims at helping you parse
+ * the standard input according to the problem statement.
+ **/
+class Player
+{
+    static void Main(string[] args)
+    {
+        string[] inputs;
+        inputs = Console.ReadLine().Split(' ');
+        int W = int.Parse(inputs[0]); // number of columns.
+        int H = int.Parse(inputs[1]); // number of rows.
+        int X = 0;
+        int Y = 0;
+        
+        int[,] map = new int[W,H];
+        int type = 0;
+        
+        for (int i = 0; i < H; i++)
+        {
+            string[] LINE = Console.ReadLine().Split(' '); // represents a line in the grid and contains W integers. Each integer represents one room of a given type.
+            for(int j = 0; j < W; j++)
+            {
+                map[j,i] = int.Parse(LINE[j]);
+            }
+        }
+        int EX = int.Parse(Console.ReadLine()); // the coordinate along the X axis of the exit (not useful for this first mission, but must be read).
+
+        // game loop
+        while (true)
+        {
+            inputs = Console.ReadLine().Split(' ');
+            int XI = int.Parse(inputs[0]);
+            int YI = int.Parse(inputs[1]);
+            string POS = inputs[2];
+            X = XI;
+            Y = YI;
+            
+            //current type
+            type = map[X,Y];
+            //Console.WriteLine("type is " + map[X,Y]);
+            
+            if(POS == "TOP")
+            {
+                //naar beneden
+                if(type == 1 || type == 3 || type == 7 || type == 9)
+                    Y++;
+                //naar links
+                else if(type == 4 || type == 10)
+                    X--;
+                //naar rechts
+                else if(type == 5 || type == 11)
+                    X++;
+            }else if (POS == "LEFT")
+            {
+                //naar beneden
+                if(type == 1 || type == 5 || type == 8 || type == 9 || type == 13)
+                    Y++;
+                //naar rechts
+                else
+                    X++;
+            }else
+            {
+                //naar beneden
+                if(type == 1 || type == 4 || type == 7 || type == 8 || type == 12)
+                    Y++;
+                //naar links
+                else
+                    X--;
+            }
+            Console.WriteLine(X + " " + Y); // One line containing the X Y coordinates of the room in which you believe Indy will be on the next turn.
+        }
+    }
+}
