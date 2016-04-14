@@ -1,0 +1,97 @@
+using System;
+using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
+
+class Node
+{
+    public int ID;
+    public bool IsGateway = false;
+    public List<Node> Neighbors = new List<Node>();
+    public int MinDistance = int.MaxValue;
+    public Node PreviousNode = null;
+
+    public Node(int ID) 
+    { 
+        this.ID = ID;
+    }
+
+    public void SetDistance(int distance, Node previousNode)
+    {
+        if (MinDistance <= distance) return;
+        MinDistance = distance;
+        PreviousNode = previousNode;
+        foreach (Node neighbor in Neighbors)
+            neighbor.SetDistance(MinDistance + 1, this);
+    }
+}
+
+class NodeCollection : List<Node>
+{
+    private Dictionary<int, Node> nodeDic;
+
+    public NodeCollection() 
+    { 
+        nodeDic = new Dictionary<int, Node>();
+    }
+
+    public Node AddOrGet(int nodeID)
+    {
+        Node result = null;
+        if (!nodeDic.TryGetValue(nodeID, out result))
+        {
+            result = new Node(nodeID);
+            Add(result);
+            nodeDic.Add(nodeID, result);
+        }
+        return result;
+    }
+}
+
+class Player
+{
+    static void Main(string[] args)
+    {
+        List<int> inputs = Console.ReadLine().Split(' ').Select(s => int.Parse(s)).ToList();
+        int L = inputs[1]; // the number of links
+        int E = inputs[2]; // the number of exit gateways
+
+        NodeCollection Nodes = new NodeCollection();
+        for (int i = 0; i < L; i++)
+        {
+            inputs = Console.ReadLine().Split(' ').Select(s => int.Parse(s)).ToList();
+            Node node1 = Nodes.AddOrGet(inputs[0]);
+            Node node2 = Nodes.AddOrGet(inputs[1]);
+            node1.Neighbors.Add(node2);
+            node2.Neighbors.Add(node1);
+        }
+        for (int i = 0; i < E; i++)
+            Nodes.AddOrGet(int.Parse(Console.ReadLine())).IsGateway = true;
+        List<Node> gateways = Nodes.Where(n => n.IsGateway).ToList();
+
+        while (true)
+        {
+            Node agentNode = Nodes.AddOrGet(int.Parse(Console.ReadLine()));
+
+            // Assign to each Node their distance to the agent by going through neighbors incrementally            
+            foreach (Node node in Nodes)
+            {
+                node.MinDistance = int.MaxValue;
+                node.PreviousNode = null;
+            }
+            agentNode.SetDistance(0, null); // Recursive call
+
+            // Pick the closest Gateway (if several, just pick one)
+            int minGateDistance = gateways.Min(n => n.MinDistance);
+            Node closestGateway = gateways.First(n => n.MinDistance == minGateDistance);
+
+            // Severe the agent closest link to the closest gateway
+            Node closestNode = closestGateway;
+            while (closestNode.PreviousNode.ID != agentNode.ID)
+                closestNode = closestNode.PreviousNode;
+            agentNode.Neighbors.Remove(closestNode);
+            closestNode.Neighbors.Remove(agentNode);
+            Console.WriteLine(Math.Min(agentNode.ID, closestNode.ID) + " " + Math.Max(agentNode.ID, closestNode.ID));
+        }
+    }
+}
