@@ -1,0 +1,77 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+
+/**
+ * Auto-generated code below aims at helping you parse
+ * the standard input according to the problem statement.
+ **/
+class Solution
+{
+    static void Main(string[] args)
+    {
+        string MESSAGE = Console.ReadLine();
+
+        // Write an action using Console.WriteLine()
+        // To debug: Console.Error.WriteLine("Debug messages...");
+
+
+        //http://stackoverflow.com/questions/5664345/string-to-binary-in-c-sharp
+        // Use any sort of encoding you like. 
+        string binaryString = ToBinary(ConvertToByteArray(MESSAGE, Encoding.ASCII));
+        //Console.WriteLine(binaryString);
+        
+        string output = "";                
+        string previousNumber = "-1";
+        string subString = "";
+        for(int i = 0; i<binaryString.Length; i++)
+        {
+            //juiste gedeelte van de string pakken
+            subString = binaryString.Substring(i,1);            
+            
+            if(i == 0)
+            {
+                if(subString == "1")
+                {
+                    output += "0 ";
+                }else
+                {
+                    output += "00 ";
+                }
+                previousNumber = subString;
+                continue;
+            }            
+            
+            if (subString == previousNumber)
+            {
+                output += "0";
+            }else
+            {
+                if(subString == "1")
+                {
+                    output += "0 0 ";
+                }else
+                {
+                    output += "0 00 ";
+                }                
+                previousNumber = subString;
+            }
+        }
+        output+= "0";
+        Console.WriteLine(output);
+    }
+    
+    public static byte[] ConvertToByteArray(string str, Encoding encoding)
+    {
+        return encoding.GetBytes(str);
+    }
+    
+    public static String ToBinary(Byte[] data)
+    {
+        return string.Join("", data.Select(byt => Convert.ToString(byt, 2).PadLeft(7, '0')));
+    }
+    
+}
