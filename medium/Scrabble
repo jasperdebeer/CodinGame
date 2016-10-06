@@ -1,0 +1,137 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+
+class Solution
+{
+    static void Main(string[] args)
+    {
+        //letter en waarde opgeslagen
+        Dictionary<char, int> LettersPoints = new Dictionary<char, int>() {
+            {'e',1},
+            {'a',1},
+            {'i',1},
+            {'o',1},
+            {'n',1},
+            {'r',1},
+            {'t',1},
+            {'l',1},
+            {'s',1},
+            {'u',1},
+            {'d',2},
+            {'g',2},
+            {'b',3},
+            {'c',3},
+            {'m',3},
+            {'p',3},
+            {'f',4},
+            {'h',4},
+            {'v',4},
+            {'w',4},
+            {'y',4},
+            {'k',5},
+            {'j',8},
+            {'x',8},
+            {'q',10},
+            {'z',10},
+        };
+
+        //Letterboek met frequentie
+        Dictionary<char, int> letterboek = new Dictionary<char, int>();
+        //Kopie van letterboek
+        Dictionary<char, int> letterboekKopie = new Dictionary<char, int>();
+
+
+        int maxPoint;
+        int maxPointNumber;
+
+        //Number of words
+        int N = int.Parse(Console.ReadLine());
+        string[] Words = new string[N];
+
+        //Getting the word
+        for (int i = 0; i < N; i++)
+        {
+            Words[i] = Console.ReadLine();
+        }
+
+        //Bruikbare letters
+        string LETTERS = Console.ReadLine();
+
+        //Hoe vaak komt elke letter voor
+        for (int i = 0; i < LETTERS.Length; i++)
+        {
+            //Zit de letter al in de dictionary?
+            if (letterboek.ContainsKey(LETTERS[i]) == true)
+            {
+                letterboek[LETTERS[i]]++;
+            }
+            else
+            {
+                letterboek[LETTERS[i]] = 1;
+            }
+        }
+
+        maxPoint = 0;
+        maxPointNumber = 0;
+
+        //Woordencheck
+        for (int i = N - 1; i >= 0; i--)
+        {
+            //Waarde per woord
+            int sum = 0;
+
+            //kopie maken
+            foreach (var t in letterboek)
+            {
+                letterboekKopie[t.Key] = t.Value;
+            }
+
+            //Waarde van woord bepalen
+            for (int j = 0; j < Words[i].Length; j++)
+            {
+                //Zit de letter in het woordenboek?
+                if (letterboekKopie.ContainsKey(Words[i][j]) == true)
+                {
+                    //Letterfrequentie in woordenboek -1
+                    letterboekKopie[Words[i][j]]--;
+                    //Waarde toevoegen
+                    sum += LettersPoints[Words[i][j]];
+
+                    //Als de letter niet meer in het woordenboek voorkomt
+                    if (letterboekKopie[Words[i][j]] < 0)
+                    {
+                        //Negatieve waarde toekennen aan het woord
+                        sum = -1;
+                        //Loop afbreken
+                        break;
+                    }
+                }
+                else
+                {
+                    //Negatieve waarde toekennen aan het woord
+                    sum = -1;
+                    //Loop afbreken
+                    break;
+                }
+            }
+
+            //Is dit het best woord?
+            if (maxPoint <= sum)
+            {
+                maxPoint = sum;
+                //Indexnummer van beste woord
+                maxPointNumber = i;
+            }
+        }
+
+        // Write an action using Console.WriteLine()
+        // To debug: Console.Error.WriteLine("Debug messages...");
+
+        //Result
+        Console.WriteLine(Words[maxPointNumber]);
+    }
+}
