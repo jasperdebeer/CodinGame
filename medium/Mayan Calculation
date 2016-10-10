@@ -1,0 +1,205 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+
+/**
+ * Auto-generated code below aims at helping you parse
+ * the standard input according to the problem statement.
+ **/
+class Solution
+{
+    static int H = 0;
+    static int L = 0;
+    static List<string> lines = new List<string>();
+    static Dictionary<char, int> dict = new Dictionary<char, int>()
+        {
+            {'0', 0},
+            {'1', 1},
+            {'2', 2},
+            {'3', 3},
+            {'4', 4},
+            {'5', 5},
+            {'6', 6},
+            {'7', 7},
+            {'8', 8},
+            {'9', 9},
+            {'A', 10},
+            {'B', 11},
+            {'C', 12},
+            {'D', 13},
+            {'E', 14},
+            {'F', 15},
+            {'G', 16},
+            {'H', 17},
+            {'I', 18},
+            {'J', 19}
+        };
+
+    static void Main(string[] args)
+    {
+        string[] inputs = Console.ReadLine().Split(' ');
+        L = int.Parse(inputs[0]);
+        H = int.Parse(inputs[1]);
+        List<string> numbers = new List<string>();
+        string number1 = "";
+        string number2 = "";
+        long nr1 = 0;
+        long nr2 = 0;
+        long result = 0;
+        string outcome = "";
+
+        for (int i = 0; i < H; i++)
+        {
+            string numeral = Console.ReadLine();
+            //Regel opdelen in stukjes van 4
+            numbers = numeral.SplitIntoParts(H);
+            //Juiste stukjes bij elkaar voegen
+            for (int j = 0; j < 20; j++)
+            {
+                if (i == 0)
+                    lines.Add(numbers[j]);//list opvullen
+                else
+                    lines[j] += numbers[j];
+            }
+        }
+        int S1 = int.Parse(Console.ReadLine());
+        for (int i = 0; i < S1; i++)
+        {
+            string num1Line = Console.ReadLine();
+            //Number1 stukjes samenvoegen
+            number1 += num1Line;
+        }
+        Console.Error.WriteLine("number1 = " + number1);
+
+        int S2 = int.Parse(Console.ReadLine());
+        for (int i = 0; i < S2; i++)
+        {
+            string num2Line = Console.ReadLine();
+            //Number2 stukjes samenvoegen
+            number2 += num2Line;
+        }
+        Console.Error.WriteLine("number2 = " + number2);
+        //Echte nummers opzoeken
+        nr1 = NumberLocator(number1);
+        nr2 = NumberLocator(number2);
+        Console.Error.WriteLine("nr1 = " + nr1);
+        Console.Error.WriteLine("nr2 = " + nr2);
+
+        string operation = Console.ReadLine();
+        if (operation == "+")
+        {
+            result = nr1 + nr2;
+        }
+        else if (operation == "-")
+        {
+            result = nr1 - nr2;
+        }
+        else if (operation == "*")
+        {
+            result = nr1 * nr2;
+        }
+        else
+        {
+            result = nr1 / nr2;
+        }
+        Console.Error.WriteLine("result = " + result);
+
+        outcome = DecimalToArbitrarySystem(result, 20);
+        //Uitkomst printen
+        base20(outcome);
+    }
+
+    public static void base20(string outcome)
+    {
+        char[] chars = outcome.ToCharArray();
+
+        for (int i = 0; i < chars.Length; i++)
+        {
+            //Console.Error.WriteLine("chars[" + i + "] = " + chars[i]);
+            if (dict.ContainsKey(chars[i]))
+            {
+                int value = dict[chars[i]];
+                //Console.Error.WriteLine("value = " + value);
+                List<string> result = lines[value].SplitIntoParts(H);
+                // Loop through List with foreach.
+                foreach (string line in result)
+                {
+                    System.Console.WriteLine(line);
+                }
+            }
+        }
+    }
+
+    public static int NumberLocator(string number)
+    {
+        int newNumber = 0;
+        //Indien nodig number opdelen
+        var S1List = number.SplitIntoParts(L * H);
+        Console.Error.WriteLine("S1List.Count = " + S1List.Count);
+
+        for (int j = S1List.Count; j > 0; j--)
+        {
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (S1List[j - 1] == lines[i])
+                {
+                    newNumber += i * (int)Math.Pow(20, S1List.Count - j);
+                }
+            }
+        }
+        return newNumber;
+    }
+    
+    /// Converts the given decimal number to the numeral system with the specified radix (in the range [2, 36]).
+    public static string DecimalToArbitrarySystem(long decimalNumber, int radix)
+    {
+        const int BitsInLong = 64;
+        const string Digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        if (radix < 2 || radix > Digits.Length)
+            throw new ArgumentException("The radix must be >= 2 and <= " + Digits.Length.ToString());
+
+        if (decimalNumber == 0)
+            return "0";
+
+        int index = BitsInLong - 1;
+        long currentNumber = Math.Abs(decimalNumber);
+        char[] charArray = new char[BitsInLong];
+
+        while (currentNumber != 0)
+        {
+            int remainder = (int)(currentNumber % radix);
+            charArray[index--] = Digits[remainder];
+            currentNumber = currentNumber / radix;
+        }
+
+        string result = new String(charArray, index + 1, BitsInLong - index - 1);
+        if (decimalNumber < 0)
+        {
+            result = "-" + result;
+        }
+
+        return result;
+    }
+}
+
+static class StringExtensions
+{
+    public static List<string> SplitIntoParts(this string s, int partLength)
+    {
+        var list = new List<string>();
+
+        if (!string.IsNullOrEmpty(s) && partLength > 0)
+        {
+            for (var i = 0; i < s.Length; i += partLength)
+            {
+                list.Add(s.Substring(i, Math.Min(partLength, s.Length - i)));
+            }
+        }
+
+        return list;
+    }
+}
