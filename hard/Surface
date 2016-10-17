@@ -1,0 +1,100 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+
+/**
+ * Auto-generated code below aims at helping you parse
+ * the standard input according to the problem statement.
+ **/
+class Solution
+{
+    public class Node
+    {
+        public int x;
+        public int y;
+
+        public Node(int X, int Y)
+        {
+            this.x = X;
+            this.y = Y;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        //Stopwatch voor optimalisatie
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        int L = int.Parse(Console.ReadLine());
+        int H = int.Parse(Console.ReadLine());
+        char[,] map = new char[L, H];
+        Node[,] mapNodes = new Node[L, H];
+
+        for (int i = 0; i < H; i++)
+        {
+            string row = Console.ReadLine();
+            //Console.Error.WriteLine(row);
+            for (int j = 0; j < row.Length; j++)
+            {
+                map[j, i] = row[j]; //Alle characters opslaan
+                mapNodes[j, i] = new Node(j, i); //Node maken voor elk character
+            }
+        }
+
+        int N = int.Parse(Console.ReadLine());
+        for (int i = 0; i < N; i++)
+        {
+            string[] inputs = Console.ReadLine().Split(' ');
+            int X = int.Parse(inputs[0]);
+            int Y = int.Parse(inputs[1]);
+            int surface = 0; 
+            //Console.Error.WriteLine("coordinate ({0}, {1}) checken", X, Y);
+            surface = BFS(map, mapNodes, X, Y, L, H, surface); //breadth first search uitvoeren om meergrootte te bepalen
+            Console.WriteLine(surface);
+        }
+        Console.Error.WriteLine("Time elapsed: {0}", stopwatch.Elapsed.TotalMilliseconds);
+    }
+
+    static int BFS(char[,] map, Node[,] mapNodes, int x, int y, int L, int H, int amount)
+    {
+        var q = new Queue<Node>();
+        q.Enqueue(mapNodes[x, y]); //Huidige node in de wachtrij zetten
+
+        bool[,] visited = new bool[L, H]; //Bijhouden of node al langsgekomen is
+
+        while (q.Count > 0)
+        {
+            var node = q.Dequeue();
+            var m = map[node.x, node.y];
+            //Console.Error.WriteLine("character at ({0}, {1}) = " + m, node.x, node.y);
+            //Console.Error.WriteLine("node at ({0}, {1}).visited is " + node.visited, node.x, node.y);
+
+            if (visited[node.x, node.y] || m == '#')//Node overslaan als ie al eerder aan bod is geweest of geen meer is
+            {
+                continue;
+            }
+
+            visited[node.x, node.y] = true; //Als bezocht markeren
+            //Console.Error.WriteLine("node at ({0}, {1}) visited", node.x, node.y);
+
+            amount++; //meeroppervlakte + 1
+            //Console.Error.WriteLine("amount++ en is nu " + amount);
+
+            //Aangrenzende nodes in de wachtrij zetten
+            if (node.x > 0 && !visited[node.x - 1, node.y])
+                q.Enqueue(mapNodes[node.x - 1, node.y]);
+            if (node.x < L - 1 && !visited[node.x + 1, node.y])
+                q.Enqueue(mapNodes[node.x + 1, node.y]);
+            if (node.y > 0 && !visited[node.x, node.y - 1])
+                q.Enqueue(mapNodes[node.x, node.y - 1]);
+            if (node.y < H - 1 && !visited[node.x, node.y + 1])
+                q.Enqueue(mapNodes[node.x, node.y + 1]);
+        }
+        return amount; //totale oppervlakte terugsturen
+    }
+}
