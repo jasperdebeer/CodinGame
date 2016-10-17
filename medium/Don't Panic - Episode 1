@@ -24,7 +24,7 @@ class Player
         int nbAdditionalElevators = int.Parse(inputs[6]); // ignore (always zero)
         int nbElevators = int.Parse(inputs[7]); // number of elevators
         Dictionary<int, int> elevatorDictionary = new Dictionary<int, int>();
-        
+
         for (int i = 0; i < nbElevators; i++)
         {
             inputs = Console.ReadLine().Split(' ');
@@ -40,50 +40,53 @@ class Player
             int cloneFloor = int.Parse(inputs[0]); // floor of the leading clone
             int clonePos = int.Parse(inputs[1]); // position of the leading clone on its floor
             string direction = inputs[2]; // direction of the leading clone: LEFT or RIGHT
-                
-                //is er geen leading clone?
-                if(direction == "NONE")
+
+            //is er geen leading clone?
+            if (direction == "NONE")
+            {
+                Console.WriteLine("WAIT");
+            }
+            else
+            {
+                //is de clone niet aan de rand?
+                if (clonePos == width - 1 || clonePos == 0)
                 {
-                    Console.WriteLine("WAIT");
-                }else
+                    Console.WriteLine("BLOCK");
+                }
+                else
                 {
-                    //is de clone niet aan de rand?
-        	        if(clonePos == width-1 || clonePos == 0)
+                    //is de exit op deze floor
+                    if (exitFloor == cloneFloor)
                     {
-                        Console.WriteLine("BLOCK");
-                    }
-                    else
-                    {
-                        //is de exit op deze floor
-                        if(exitFloor == cloneFloor)
+                        //gaat de clone de goede kant op?
+                        if (exitPos > clonePos && direction == "LEFT" || exitPos < clonePos && direction == "RIGHT")
                         {
-                             //gaat de clone de goede kant op?
-                            if(exitPos > clonePos && direction == "LEFT" || exitPos < clonePos && direction == "RIGHT")
-                            {
-                                Console.WriteLine("BLOCK");
-                            }else
-                            {
-                                Console.WriteLine("WAIT");
-                            }
+                            Console.WriteLine("BLOCK");
                         }
-                        //is er een elevator op deze verdieping?
-                        else if (elevatorDictionary.ContainsKey(cloneFloor))
-                    	{
-                    	    //Is de elevator de andere kant op?
-                    	    if(elevatorDictionary[cloneFloor] > clonePos && direction == "LEFT" || elevatorDictionary[cloneFloor] < clonePos && direction == "RIGHT")
-                    	    {
-                    	        Console.WriteLine("BLOCK");
-                    	    }
-                    	    else
-                    	    {
-                    	        Console.WriteLine("WAIT");
-                    	    }
-                    	}else // geen lift op deze floor
-                    	{
+                        else
+                        {
                             Console.WriteLine("WAIT");
-                    	}
+                        }
+                    }
+                    //is er een elevator op deze verdieping?
+                    else if (elevatorDictionary.ContainsKey(cloneFloor))
+                    {
+                        //Is de elevator de andere kant op?
+                        if (elevatorDictionary[cloneFloor] > clonePos && direction == "LEFT" || elevatorDictionary[cloneFloor] < clonePos && direction == "RIGHT")
+                        {
+                            Console.WriteLine("BLOCK");
+                        }
+                        else
+                        {
+                            Console.WriteLine("WAIT");
+                        }
+                    }
+                    else // geen lift op deze floor
+                    {
+                        Console.WriteLine("WAIT");
                     }
                 }
+            }
         }
     }
 }
