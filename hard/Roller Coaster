@@ -1,0 +1,82 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+
+/**
+ * Auto-generated code below aims at helping you parse
+ * the standard input according to the problem statement.
+ **/
+class Solution
+{
+    static void Main(string[] args)
+    {
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+        
+        string[] inputs = Console.ReadLine().Split(' ');
+        int L = int.Parse(inputs[0]); //The attraction contains a limited number L of places.
+        int C = int.Parse(inputs[1]); //The attraction can only function C number of times per day.
+        int N = int.Parse(inputs[2]); //The queue contains a number N of groups.
+        long answer = 0;
+        int index = 0;
+        Group first;
+        Group startGroup;
+        int places = 0;
+        int groupsActive = 0;
+        List<Group> groups = new List<Group>();
+
+        for (int i = 0; i < N; i++)
+        {
+            int pi = int.Parse(Console.ReadLine()); //Each group contains a number Pi of people.
+            groups.Add(new Group(pi, 0, 0));
+        }
+
+        for (int i = 0; i < C; i++)
+        {
+            first = groups[index]; // eerste groep in de rij
+            startGroup = first; // groep die deze run vooraan stond
+            places = L;
+            groupsActive = 1;
+
+            if (startGroup.total != 0) // is de startgroep al eerder de startgroep geweest? Dan is de opbrengst van deze run al bekend.
+            {
+                index = startGroup.nextGroup;
+            }
+            else
+            {
+                while (first.size <= places && groupsActive <= N)// is er genoeg plaats en is de groep nog niet actief
+                {
+                    places -= first.size;
+                    index++;
+                    if (index == N)
+                        index = 0;
+                    first = groups[index];
+                    groupsActive++;
+                }
+                startGroup.nextGroup = index;
+                startGroup.total = (L - places); // totaal aantal plaatsen - aantal lege stoeltjes
+            }
+            answer += startGroup.total;
+        }
+        Console.WriteLine(answer);
+        Console.Error.WriteLine("verstreken tijd is {0}ms", stopwatch.ElapsedMilliseconds);
+    }
+
+    class Group
+    {
+        public int size;
+        public long total;
+        public int nextGroup;
+
+        public Group(int p, long t, int n)
+        {
+            this.size = p;
+            this.total = t;
+            this.nextGroup = n;
+        }
+    }
+}
