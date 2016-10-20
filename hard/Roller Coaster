@@ -16,23 +16,23 @@ class Solution
     {
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
-        
+
         string[] inputs = Console.ReadLine().Split(' ');
         int L = int.Parse(inputs[0]); //The attraction contains a limited number L of places.
         int C = int.Parse(inputs[1]); //The attraction can only function C number of times per day.
         int N = int.Parse(inputs[2]); //The queue contains a number N of groups.
-        long answer = 0;
-        int index = 0;
-        Group first;
+        Group[] groups = new Group[N];
         Group startGroup;
-        int places = 0;
+        Group first;
         int groupsActive = 0;
-        List<Group> groups = new List<Group>();
+        long answer = 0;
+        int places = 0;
+        int index = 0;
 
         for (int i = 0; i < N; i++)
         {
             int pi = int.Parse(Console.ReadLine()); //Each group contains a number Pi of people.
-            groups.Add(new Group(pi, 0, 0));
+            groups[i] = new Group(pi, 0, 0);
         }
 
         for (int i = 0; i < C; i++)
