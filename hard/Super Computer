@@ -1,0 +1,60 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+
+class Solution
+{
+    static void Main(string[] args)
+    {
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        int N = int.Parse(Console.ReadLine());
+        Calculation[] calculations = new Calculation[N];
+        Calculation calculation;
+        long answer = 1;
+        int start = 0;
+        int end = 0;
+
+        for (int i = 0; i < N; i++)
+        {
+            string[] inputs = Console.ReadLine().Split(' ');
+            int J = int.Parse(inputs[0]);
+            int D = int.Parse(inputs[1]);
+            calculations[i] = new Calculation(J, D);
+        }
+        calculations = calculations.OrderBy(c => c.end).ToArray(); // calculations sorteren op einde 
+
+        end = calculations[0].end; // eerste einde opzoeken
+
+        for (int i = 1; i < calculations.Length; i++)
+        {
+            calculation = calculations[i]; // huidige calculation pakken
+            if (calculation.start > end) // checken of calculation niet te vroeg start
+            {
+                answer++;
+                end = calculation.end;
+            }
+        }
+        Console.WriteLine(answer);
+        Console.Error.WriteLine("verstreken tijd is {0}ms", stopwatch.ElapsedMilliseconds);
+    }
+
+    class Calculation
+    {
+        public int start;
+        int length;
+        public int end;
+
+        public Calculation(int S, int L)
+        {
+            this.start = S;
+            this.length = L;
+            this.end = S + L - 1;
+        }
+    }
+}
