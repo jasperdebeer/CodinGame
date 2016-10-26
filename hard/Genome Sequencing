@@ -1,0 +1,190 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+
+class Solution
+{
+    class Node
+    {
+        public string answer = "";
+        public Node leftChild = null;
+        public Node rightChild = null;
+        public int index = 0;
+
+        public Node(string Answer, int Index)
+        {
+            this.answer = Answer;
+            this.index = Index;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        int N = int.Parse(Console.ReadLine()); // aantal woorden
+        string[] strings = new string[N]; // woordenarray
+        int amount = (int)Math.Pow(2, N) - 1; // hoeveelheid nodes
+        List<Node> nodes = new List<Node>(); // lijst voor de nodes
+        List<int> results = new List<int>(); // lijst met woordlengte van de leafs. Leafs zijn de individuele nodes in de lijst nodes, die geen childnodes hebben 
+        int result = int.MaxValue; // antwoord
+
+        for (int i = 0; i < N; i++)
+        {
+            string subseq = Console.ReadLine();
+            strings[i] = subseq;
+            //Console.Error.WriteLine("strings[{0}] = " + strings[i], i);
+        }
+
+        if (N == 1) // als er maar 1 woord is
+        {
+            result = strings[0].Length;
+        }
+        else // als er meerdere woorden zijn
+        {
+            for (int i = 0; i < N; i++)
+            {
+                nodes.Add(new Node(strings[i], 0)); // root aanmaken
+                string root = nodes[0].answer;
+                string backup = strings[0]; // backup maken van eerste woord, zodat er een omwisseling kan plaatsvinden
+                strings[0] = root; // maak root eerste woord
+                strings[i] = backup; // maak backup woord i
+                int index = 0; // index resetten
+
+                while (nodes.Count < amount - 1) // zolang er nog ruimte is voor twee childnodes
+                {
+                    Node node = nodes[index]; // huidige node pakken
+                    string left = node.answer; // basis voor links en rechts opslaan
+                    string right = node.answer; // basis voor links en rechts opslaan
+                    int ndx = node.index + 1; // index van volgende woord
+                    string nextWord = strings[ndx]; // volgende woord
+
+                    if (!left.Contains(nextWord)) // als nextWord nog niet in zn geheel in answer zit
+                    {
+                        left = Compare(left, nextWord, "left", nextWord.Length - 1, false); // linker samenvoeging maken
+                        right = Compare(right, nextWord, "right", 0, false); // rechter samenvoeging maken
+                    }
+
+                    if (ndx >= N - 1) // als de childnodes leafs zijn, dan lengte toevoegen aan results
+                    {
+                        results.Add(left.Length);
+                        results.Add(right.Length);
+                    }
+                    nodes[index].leftChild = new Node(left, ndx); // linker childnode maken
+                    nodes[index].rightChild = new Node(right, ndx); // rechter childnode maken
+                    nodes.Add(nodes[index].leftChild); // childnode toevoegen aan nodes
+                    nodes.Add(nodes[index].rightChild); // childnode toevoegen aan nodes
+                    index++;
+                }
+                nodes = new List<Node>(); // nodes resetten
+            }
+        }
+        Console.WriteLine(results.Min()); // kortste resultaat printen
+        Console.Error.WriteLine("verstreken tijd is {0}ms", stopwatch.ElapsedMilliseconds);
+    }
+
+    static string Compare(string answer, string word, string addition, int indexer, bool contains)
+    {
+        var index = 0; // eerste index van word voor als addition right is
+        if (addition == "left")
+            index = word.Length - 1; // laatste index van word
+        char letter = word[index]; // letter van word op index
+        int wordLength = word.Length;
+        string answerPart = "";
+        string wordPart = "";
+        int start = 0;
+
+        if (!contains && !answer.Contains(letter)) // als de letter niet in het antwoord voorkomt. voor links is dat laatste letter van word, voor rechts is dat de eerste
+        {
+            if (addition == "left") // als links samenvoegen
+                answer = word + answer;
+            else // als rechts samenvoegen
+                answer += word;
+            return answer; // antwoord terugsturen
+        }
+        else // als beginletter wel in antwoord zit
+        {
+            contains = true; // letter zit in het antwoord
+
+            if (addition == "left")
+            {
+                start = IndexOfChar(answer, letter, indexer, false); // eerste voorkomen van letter vanaf einde (rechts naar links)
+                answerPart = answer.Substring(0, start + 1); // substring van antwoord
+                wordPart = word.Substring(wordLength - answerPart.Length); // substring van word; alleen einde van word houden
+            }
+            else // addition == "right"
+            {
+                start = IndexOfChar(answer, letter, indexer, true); // eerste voorkomen van letter vanaf begin
+                answerPart = answer.Substring(start); // substring van antwoord
+                if (answerPart.Length <= wordLength)
+                    wordPart = word.Substring(0, answerPart.Length); // substring van word; alleen begin houden
+                else
+                    wordPart = word;
+            }
+
+            if (answerPart == wordPart) // als substrings gelijk zijn
+            {
+                if (addition == "left" && wordLength - wordPart.Length < word.Length)
+                    answer = word.Remove(wordLength - wordPart.Length) + answer; // overlap weghalen en restanten samenvoegen
+                else
+                    answer += word.Remove(0, wordPart.Length); // overlap weghalen en restanten samenvoegen
+                return answer;
+            }
+            else // als substrings niet gelijk zijn
+            {
+                if (addition == "left")
+                {
+                    if (IndexOfChar(answer, letter, start - 1, false) != -1) // als de letter nog een keer voorkomt
+                    {
+                        return answer = Compare(answer, word, addition, start - 1, contains); // opnieuw vergelijken
+                    }
+                    else // als letter niet nog een keer voorkomt
+                    {
+                        answer = word + answer; // samenvoegen en terugsturen
+                        return answer;
+                    }
+                }
+                else // als rechts
+                {
+                    if (IndexOfChar(answer, letter, start + 1, true) != -1) // als de letter nog een keer voorkomt
+                    {
+                        return answer = Compare(answer, word, addition, start + 1, contains); // opnieuw vergelijken
+                    }
+                    else // als letter niet nog een keer voorkomt
+                    {
+                        answer += word; // samenvoegen en terugsturen
+                        return answer;
+                    }
+                }
+            }
+        }
+    }
+
+    static int IndexOfChar(string arr, int value, int index, bool start) // bool start is om te bepalen of de loop vanaf begin moet of vanaf einde van de string
+    {
+        if (start) // beginnen vanaf het begin
+        {
+            for (int i = index; i < arr.Length; i++)
+            {
+                if (arr[i] == value)
+                {
+                    return i;
+                }
+            }
+        }
+        else // beginnen vanaf het einde
+            for (int i = index; i >= 0; i--)
+            {
+                if (i < arr.Length && arr[i] == value)
+                {
+                    return i;
+                }
+            }
+        return -1; // letter komt niet voor
+    }
+}
