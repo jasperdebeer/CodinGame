@@ -1,0 +1,87 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+
+class Solution
+{
+    class Room
+    {
+        public int index; // kamernummer
+        public int money; // geld in deze kamer
+        public int totalMoney; // cumulatieve geld t/m deze kamer
+        public int[] neighbours = new int[2]; // twee buren
+
+        public Room(string Index, string Money, string door1, string door2)
+        {
+            index = int.Parse(Index);
+            money = int.Parse(Money);
+            totalMoney = this.money;
+            neighbours[0] = door1 == "E" ? -1 : int.Parse(door1);
+            neighbours[1] = door2 == "E" ? -1 : int.Parse(door2);
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        int N = int.Parse(Console.ReadLine()); // hoeveelheid kamers
+        Room[] rooms = new Room[N]; 
+        List<int> exitList = new List<int>(); // kamernummer(s) van de uitgang(en)
+        int answer = 0;
+        int exitAnswer = 0;
+
+        for (int i = 0; i < N; i++)
+        {
+            string room = Console.ReadLine(); // kamergegevens
+            string[] roomInfo = room.Split(' '); // kamergegevens opdelen
+            rooms[i] = new Room(roomInfo[0], roomInfo[1], roomInfo[2], roomInfo[3]); // nieuwe kamer maken
+            if (roomInfo[2] == "E" || roomInfo[3] == "E")
+                exitList.Add(int.Parse(roomInfo[0])); // uitgang toevoegen
+        }
+
+        for (int i = 0; i < exitList.Count; i++) // voor elke uitgang
+        {
+            DFS(rooms, rooms[0], exitList[i]); // depth first search naar deze exit
+            exitAnswer = rooms[exitList[i]].totalMoney; // cumulatieve geld van deze exit
+            answer = Math.Max(answer, exitAnswer); // exitAnswer vergelijken met answer en de grootste behouden
+        }
+        Console.WriteLine(answer); // antwoord printen
+        Console.Error.WriteLine("Verstreken tijd is {0}ms", stopwatch.ElapsedMilliseconds);
+    }
+
+    //https://en.wikipedia.org/wiki/Depth-first_search
+    //  Input: A graph G and a vertex v of G
+    //  Output: All vertices reachable from v labeled as discovered
+
+    //1      procedure DFS(G, v):
+    //2      label v as discovered
+    //3      for all edges from v to w in G.adjacentEdges(v) do
+    //4          if vertex w is not labeled as discovered then
+    //5              recursively call DFS(G, w)
+
+    static void DFS(Room[] rooms, Room room, int exit) // depth first search
+    {
+        if (room.index != exit) // als de kamer niet de gezochte uitgang is
+        {
+            for (int i = 0; i < room.neighbours.Length; i++) // voor elke buur van deze kamer
+            {
+                if (room.neighbours[i] == -1) // als de kamer een uitgang is
+                    continue; // volgende
+
+                var neighbour = rooms[room.neighbours[i]]; // buur pakken
+
+                if (neighbour.totalMoney <= (room.totalMoney + neighbour.money)) // als de buur in totaal gelijk of minder geld heeft 
+                {
+                    neighbour.totalMoney = room.totalMoney + neighbour.money; // nieuwe cumulatieve bedrag berekenen
+                    DFS(rooms, neighbour, exit); // dfs met deze buur
+                }
+            }
+        }
+    }
+}
