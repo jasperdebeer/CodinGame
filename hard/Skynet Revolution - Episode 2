@@ -1,0 +1,185 @@
+using System;
+using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
+//using System.Diagnostics;
+
+/// Stappenplan
+/// 1. Heeft de agent een direct link naar een gateway?
+/// 2. Geen directe link, dan superneighbour met minste nondirectlinks op de route van agent naar superneighbour opsporen
+/// 3. Link cutten
+/// 4. Target verwijderen uit neighbours van exit
+/// 5. Exit verwijderen uit neighbours van Target
+/// 6. Mogelijk gateway verwijderen uit gateways
+
+class Node
+{
+    public int id;
+    public bool isGateway = false;
+    public List<Node> neighbours = new List<Node>();
+    public int minDistance = int.MaxValue;
+    public Node previousNode = null;
+    public int gatewayLinks = 0;
+
+    public Node(int ID)
+    {
+        this.id = ID;
+    }
+
+    public void SetDistance(int distance, Node previousNode)
+    {
+        if (minDistance <= distance) return;
+        minDistance = distance;
+        this.previousNode = previousNode;
+        if (!isGateway) // dit zorgt ervoor dat minDistance nooit via gateway gaat
+        {
+            foreach (Node neighbor in neighbours)
+                neighbor.SetDistance(minDistance + 1, this);
+        }
+    }
+}
+
+class Player
+{
+    static void Main(string[] args)
+    {
+        //Stopwatch stopwatch = new Stopwatch();
+        //stopwatch.Start();
+
+        string[] inputs = Console.ReadLine().Split(' ');
+        int N = int.Parse(inputs[0]); // the total number of nodes in the level, including the gateways
+        int L = int.Parse(inputs[1]); // the number of links
+        int E = int.Parse(inputs[2]); // the number of exit gateways
+        Node[] nodes = new Node[N];
+        for (int i = 0; i < L; i++) //  L, the number of links in the level.
+        {
+            inputs = Console.ReadLine().Split(' ');
+            int N1 = int.Parse(inputs[0]); // N1 and N2 defines a link between these nodes
+            int N2 = int.Parse(inputs[1]);
+            if (nodes[N1] == null)
+                nodes[N1] = new Node(N1);
+            if (nodes[N2] == null)
+                nodes[N2] = new Node(N2);
+            nodes[N1].neighbours.Add(nodes[N2]); // neighbour toevoegen
+            nodes[N2].neighbours.Add(nodes[N1]); // neighbour toevoegen 
+        }
+        for (int i = 0; i < E; i++)
+        {
+            int EI = int.Parse(Console.ReadLine()); // the index of a gateway node
+            nodes[EI].isGateway = true; // gatewaynode als zodanig aanmerken
+        }
+
+        List<Node> gateways = nodes.Where(n => n.isGateway).ToList(); // lijst van gatewaynodes
+        List<Node> superNeighbours = new List<Node>(); // lijst van neighbours (van gateways) die meer dan 1 gateway als neighbour hebben
+        for (int i = 0; i < gateways.Count; i++)
+        {
+            for (int j = 0; j < gateways[i].neighbours.Count; j++)
+            {
+                gateways[i].neighbours[j].gatewayLinks++; // hoeveelheid links met gateways ophogen
+                if (!superNeighbours.Contains(gateways[i].neighbours[j]))
+                {
+                    superNeighbours.Add(gateways[i].neighbours[j]);
+                    //Console.Error.WriteLine("{0} is een superNeighbour", gateways[i].neighbours[j].id);
+                }
+            }
+        }
+        superNeighbours = superNeighbours.Where(n => n.gatewayLinks > 1).ToList(); // alle superneighbours filteren uit alle gatewayneighbours
+        //Console.Error.WriteLine("{0} superNeighbours", superNeighbours.Count);
+
+        while (true)
+        {
+            if (superNeighbours.Count > 0)
+            {
+                superNeighbours = superNeighbours.Where(n => n.gatewayLinks > 1).ToList(); // superneighbours updaten 
+            }
+            Node agentNode = nodes[int.Parse(Console.ReadLine())];
+            bool directLink = false; // heeft agent directe link naar gateway?
+
+            foreach (Node node in nodes) // Afstand van elke node vanaf agent resetten
+            {
+                node.minDistance = int.MaxValue;
+                node.previousNode = null;
+            }
+            agentNode.SetDistance(0, null); // Afstand van elke node vanaf agent bepalen
+
+            Node target = null; // node met link naar gateway die gecut gaat worden
+            Node exit = null; // gateway van target
+            for (int i = 0; i < agentNode.neighbours.Count; i++)
+            {
+                if (agentNode.neighbours[i].isGateway) /// 1. Heeft de agent een direct link naar een gateway?
+                {
+                    //Console.Error.WriteLine("agent at {0} is een neighbour van een gateway", agentNode.Neighbours[i].ID);
+                    exit = agentNode.neighbours[i];
+                    target = agentNode;
+                    directLink = true;
+                    //Console.Error.WriteLine("Direct link");
+                    break;
+                }
+            }
+
+            if (!directLink) /// 2. Geen directe link, dan superneighbour met minste nondirectlinks op de route van agent naar superneighbour opsporen
+            {
+                //Console.Error.WriteLine("Geen direct link");
+
+                if (superNeighbours.Count != 0)
+                {
+                    //Console.Error.WriteLine("{0} superNeighbours", superNeighbours.Count);
+
+                    int nonDirectLinks = int.MaxValue;
+                    int index = 0;
+
+                    if (superNeighbours.Count > 1)
+                    {
+                        for (int i = 0; i < superNeighbours.Count; i++)
+                        {
+                            int nonDirects = 0;
+                            var previous = superNeighbours[i].previousNode;
+                            while (previous != null && previous != agentNode)
+                            {
+                                if (previous.gatewayLinks == 0)
+                                {
+                                    nonDirects++;
+                                }
+                                previous = previous.previousNode;
+                            }
+                            if (nonDirects < nonDirectLinks)
+                            {
+                                nonDirectLinks = nonDirects;
+                                index = i;
+                            }
+                            //Console.Error.WriteLine("{0} nonDirectLinks voor {1}", nonDirects, superNeighbours[i].id);
+                        }
+                    }
+                    target = superNeighbours[index];
+                    //Console.Error.WriteLine("closest superNeighbour is node {0}", closestNeighbour.id);
+                    for (int i = 0; i < target.neighbours.Count; i++)
+                    {
+                        if (target.neighbours[i].isGateway)
+                        {
+                            exit = target.neighbours[i];
+                            //Console.Error.WriteLine("closest superNeighbour exit is node {0}", closestNeighbour.neighbours[i].id);
+                            target.gatewayLinks--;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    exit = gateways[0];
+                    int minNeighbourDistance = exit.neighbours.Min(n => n.minDistance);
+                    target = exit.neighbours.First(n => n.minDistance == minNeighbourDistance);
+                }
+            }
+            Console.WriteLine(target.id + " " + exit.id); /// 3. Link cutten
+
+            exit.neighbours.Remove(target); /// 4. Target verwijderen uit neighbours van exit
+            target.neighbours.Remove(exit); /// 5. Exit verwijderen uit neighbours van Target
+
+            if (exit.neighbours.Count == 0) /// 6. Mogelijk gateway verwijderen uit gateways
+            {
+                gateways.Remove(exit);
+            }
+            //Console.Error.WriteLine("Verstreken tijd is {0}ms", stopwatch.ElapsedMilliseconds);
+        }
+    }
+}
